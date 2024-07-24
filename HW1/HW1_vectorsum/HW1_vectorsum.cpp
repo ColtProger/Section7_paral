@@ -194,6 +194,16 @@ int main()
     std::cout << "16 threads: " << "\t";
     std::copy(thr16.begin(), thr16.end(), std::ostream_iterator<double>(std::cout, "\t "));
     std::cout << "\n";
+
+    // avtomatization
+    /*std::vector<std::thread> ths;
+    std::size_t n;
+    std::cin >> n;
+    for (std::size_t i = 0; i < n; ++i)
+        ths.push_back(std::thread(&foo, i));
+    for (auto& th : ths)
+        th.join();
+    return 0;*/
   
 
     return EXIT_SUCCESS;
