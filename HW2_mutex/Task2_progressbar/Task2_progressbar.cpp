@@ -55,7 +55,7 @@ void process_imitation(int indx, int num, int count) {
     int progress_y = 2 +  indx;
     int progress_x = 1;
 
-    m.lock();
+    //m.lock();
     
     set_cursor(progress_x, progress_y);
     std::cout <<indx<<". "<< std::this_thread::get_id() << " " << "[";
@@ -79,7 +79,7 @@ void process_imitation(int indx, int num, int count) {
 
    set_cursor(progress_x + barWidth + 13, progress_y);
    std::cout << " " << time.count() << std::endl;
-   m.unlock();
+  // m.unlock();
    //std::cout << "\n";
 }
 
@@ -105,7 +105,7 @@ int main()
     }
 
     for (auto& thread : ths) {          // (2)
-        thread.join();
+        thread.detach();
     }
 
     set_cursor(0,10);
