@@ -79,10 +79,13 @@ void process_imitation(int indx, int num, int count) {
     m.lock();
     consol_parameter::SetPosition(progress_x, progress_y);
     std::cout << indx << ". " << std::this_thread::get_id();
-    m.unlock();
 
-     //consol_parameter::SetPosition(progress_x, progress_y);
-    //std::cout << indx << ". " << std::this_thread::get_id();
+    consol_parameter::SetPosition(progress_x + 10, progress_y);
+    std::cout << "[";
+    
+    consol_parameter::SetPosition(progress_x+ 12 + barWidth, progress_y);
+    std::cout <<"]";
+    m.unlock();
 
     auto start_t = std::chrono::high_resolution_clock::now();
 
@@ -97,7 +100,10 @@ void process_imitation(int indx, int num, int count) {
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
 
         std::lock_guard<std::mutex> grd(m);
-        render_progress_bar(progress_x+10, progress_y, barWidth, progress);
+
+        int pos = barWidth * progress;
+        consol_parameter::SetPosition(progress_x + 11 + pos, progress_y);
+        if (pos < barWidth) std::cout << "=";
 
        last_index += 1;
        progress = (static_cast<double>(last_index - start) / static_cast<double>(end - start));
@@ -106,7 +112,8 @@ void process_imitation(int indx, int num, int count) {
     auto end_t = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double>time = end_t - start_t;
 
-    consol_parameter::SetPosition(progress_x + barWidth + 19, progress_y);
+    std::lock_guard<std::mutex> grd(m);
+    consol_parameter::SetPosition(progress_x + barWidth + 15, progress_y);
     std::cout << " " << time.count();
  
   std::cout << "\n";
