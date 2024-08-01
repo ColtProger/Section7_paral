@@ -1,29 +1,50 @@
-﻿#include <vector>
-#include <thread>
+﻿#include <algorithm>
 #include <future>
-#include <numeric>
 #include <iostream>
-#include <chrono>
+#include <mutex>
+#include <numeric>
+#include <string>
+#include <vector>
 
-int print(int elem) {
-
-    std::cout << elem << " ";
-    return 0;
-
-}
-
-void for_each(std::vector<int>::iterator first,
-    std::vector<int>::iterator last,
-    int(*func)(int))
-{    
-    for (auto it = first; it != last; ++it)
-        func(*it);
-}
-
-int main()
+template<typename Iterator, typename Func>
+void parallel_for_each(Iterator first, Iterator last, Func f)
 {
-    // Демонстрация использования promise<int> для передачи результата между потоками.
-    std::vector<int> numbers = { 1, 2, 3, 4, 5, 6 };
-    
-    for_each(numbers.begin(), numbers.end(), &print);
+    auto vol = last - first;
+    Iterator mid = first + vol / 2; 
+
+    if (vol < 10) {
+        for (; first != last; ++first)
+            f(*first);
+    }
+    else {
+
+        std::future<void> future{ std::async(std::launch::async,
+                          parallel_for_each<Iterator, Func>, first, mid, std::ref(f)) };
+
+        future.get();
+        parallel_for_each(mid, last, f);
+
+    }
+}
+
+
+int main() {
+
+    std::vector<int> v{ 3, -4, 2, -8, 15, 2, 6, 7, 12, 86, 23 };
+    // increment elements in-place
+    parallel_for_each(v.begin(), v.end(), [](int& n) { n++; });
+
+    auto print = [](const int& n) { std::cout << n << ' '; };
+
+    std::cout << "after :\t";
+    parallel_for_each(v.cbegin(), v.cend(), print);
+    std::cout << '\n';
+
+
+
+    //std::vector<int> v(12, 1);
+    //int sum = 0;
+    //std::cout << "The sum is " << parallel_sum(v.begin(), v.end(), 0) << '\n';
+    //parallel_sum(v.begin(), v.end(), std::ref(sum));
+
 }
