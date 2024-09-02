@@ -25,10 +25,8 @@ public:
     T pop()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        while (m_queue.empty()) {
-            m_cond.wait(lock); //, [this]() { return !m_queue.empty(); });
-        }
-        T item = m_queue.front();
+         m_cond.wait(lock, [this] { return !m_queue.empty(); });
+        T item = std::move( m_queue.front());
         m_queue.pop();
         return item;
     }
@@ -102,9 +100,10 @@ public:
             while (!tasks_.ifempty())
             {
                 std::unique_lock<std::mutex> lock(queue_mutex_);
-                auto task = tasks_.front();
+                auto task = tasks_.pop();
+               // auto task = tasks_.front();
                 task();
-                tasks_.pop();
+               // tasks_.pop();
             }
 
             
@@ -114,8 +113,6 @@ public:
 
 
 };
-// Thread-safe queue 
-
 
 void function1() {
 
@@ -143,7 +140,7 @@ int main()
 
     // Enqueue tasks for execution 
     for (int i = 0; i < 5; ++i) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
         m.lock();
         std::cout << "STEP " << i << std::endl;
         m.unlock();
