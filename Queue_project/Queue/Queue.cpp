@@ -4,8 +4,10 @@
 #include <queue> 
 #include <thread> 
 #include <functional>
+#include<atomic>
 
 std::mutex m;
+std::atomic_bool stop_ = false;
 
 template <typename T>
 class SafeQueue {
@@ -53,7 +55,7 @@ private:
     std::mutex queue_mutex_;
 
     std::condition_variable cv_;
-    bool stop_ = false;
+    //bool stop_ = false;
 
 
 public:
@@ -99,7 +101,7 @@ public:
         {
             while (!tasks_.ifempty())
             {
-                std::unique_lock<std::mutex> lock(queue_mutex_);
+                //std::unique_lock<std::mutex> lock(queue_mutex_);
                 auto task = tasks_.pop();
                // auto task = tasks_.front();
                 task();
@@ -132,11 +134,20 @@ void function2() {
     }
 }
 
+void function3() {
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    {
+        std::lock_guard<std::mutex> lock(m);
+        std::cout << "working function " << __FUNCTION__ << std::endl;
+    }
+}
+
 // Driver code 
 int main()
 {
     const auto cores = std::thread::hardware_concurrency();
-    ThreadPool pool(2);
+    ThreadPool pool(cores);
 
     // Enqueue tasks for execution 
     for (int i = 0; i < 5; ++i) {
@@ -147,6 +158,7 @@ int main()
 
         pool.submit(function1);
         pool.submit(function2);
+        pool.submit(function3);
     }
 
     return EXIT_SUCCESS;
